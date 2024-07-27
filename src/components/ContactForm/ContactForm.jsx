@@ -1,59 +1,62 @@
-import PropTypes from 'prop-types';
-import { useId } from "react";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import { nanoid } from "nanoid";
-import * as Yup from "yup";
+import { useId } from 'react';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import styles from './ContactForm.module.css';
+import { useDispatch } from 'react-redux';
+import { addContact } from '../../redux/contactsSlice';
 
-import css from './ContactForm.module.css';
-
-// Определение схемы валидации с использованием Yup
 const addContactSchema = Yup.object().shape({
-    name: Yup.string()
-        .min(3, "Слишком короткое имя")
-        .max(50, "Слишком длинное имя")
-        .required("Обязательное поле"),
-    number: Yup.string()
-        .matches(/^[0-9]+$/, "Должен содержать только цифры")
-        .min(10, "Должен содержать ровно 10 цифр")
-        .max(10, "Должен содержать ровно 10 цифр")
-        .required("Обязательное поле"),
+  name: Yup.string()
+    .min(3, 'Too short')
+    .max(50, 'Too long')
+    .required('Name required to fill out'),
+  number: Yup.string()
+    .min(7, 'Too short')
+    .max(9, 'Too long')
+    .required('Phone number required to fill out'),
 });
 
-export default function ContactForm({ onAdd }) {
-    const nameFieldId = useId();
-    const numberFieldId = useId();
+function ContactForm() {
+  const nameFieldId = useId();
+  const numberFieldId = useId();
 
-    const initValues = { name: "", number: "" };
+  const dispatch = useDispatch();
 
-    const handleSubmit = (contact, actions) => {
-        onAdd({ ...contact, id: nanoid() });
-        actions.resetForm();
-    };
+  const initValues = { name: '', number: '' };
 
-    return (
-        <Formik
-            initialValues={initValues}
-            onSubmit={handleSubmit}
-            validationSchema={addContactSchema}
-        >
-            <Form className={css.form}>
-                <div className={css.div}>
-                    <label className={css.label} htmlFor={nameFieldId}>Имя</label>
-                    <Field id={nameFieldId} name="name" type="text" className={css.field} />
-                    <ErrorMessage name="name" component="span" className={css.error} />
-                </div>
-                <div className={css.div}>
-                    <label className={css.label} htmlFor={numberFieldId}>Номер телефона</label>
-                    <Field id={numberFieldId} name="number" type="text" className={css.field} />
-                    <ErrorMessage name="number" component="span" className={css.error} />
-                </div>
-                <button className={css.button} type="submit">Добавить контакт</button>
-            </Form>
-        </Formik>
-    );
+  function handleSubmit(contact, actions) {
+    dispatch(addContact(contact));
+    actions.resetForm();
+  }
+
+  return (
+    <Formik
+      initialValues={initValues}
+      onSubmit={handleSubmit}
+      validationSchema={addContactSchema}
+    >
+      <Form className={styles.form}>
+        <div className={styles.fieldset}>
+          <label htmlFor={nameFieldId}>Name</label>
+          <Field id={nameFieldId} name="name" type="text" />
+          <ErrorMessage name="name" component="span" className={styles.error} />
+        </div>
+
+        <div className={styles.fieldset}>
+          <label htmlFor={numberFieldId}>Number</label>
+          <Field id={numberFieldId} name="number" type="text" />
+          <ErrorMessage
+            name="number"
+            component="span"
+            className={styles.error}
+          />
+        </div>
+
+        <button type="submit">Add contact</button>
+      </Form>
+    </Formik>
+  );
 }
 
-ContactForm.propTypes = {
-    onAdd: PropTypes.func.isRequired,
-};
+export default ContactForm;
 
